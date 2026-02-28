@@ -1,4 +1,4 @@
-package main
+package keyhash
 
 import (
 	"hash/fnv"

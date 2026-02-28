@@ -1,4 +1,4 @@
-package main_test
+package testcontainers_test
 
 import (
 	"context"

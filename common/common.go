@@ -1,4 +1,4 @@
-package main
+package common
 
 type SignedInt interface {
 	int | int8 | int16 | int32 | int64

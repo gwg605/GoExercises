@@ -1,4 +1,4 @@
-package main_test
+package keyhash_test
 
 import (
 	"fmt"
@@ -6,7 +6,8 @@ import (
 	"log"
 	"math"
 	"testing"
-	main "valerygordeev/go/exercises"
+	"valerygordeev/go/exercises/common"
+	"valerygordeev/go/exercises/keyhash"
 
 	"github.com/google/uuid"
 )
@@ -38,7 +39,7 @@ func DumpShardKeysStat(label string, stat ShardKeysStats) {
 	var minDisp = math.MaxInt
 	var totalDisp = 0
 	for _, keysCount := range stat {
-		disp := main.AbsInt(keysCount - averageKeysCount)
+		disp := common.AbsInt(keysCount - averageKeysCount)
 		if disp < minDisp {
 			minDisp = disp
 		}
@@ -109,9 +110,9 @@ func TestKeyHashers(t *testing.T) {
 	keysCounts := []int{100000, 500000, 1000000}
 	keysCountsMax := keysCounts[len(keysCounts)-1]
 	hashers := map[string]Hasher{
-		"KeyHash": main.KeyHash,
-		"HashFnv": main.HashFnv,
-		"hashMap": main.HashMap,
+		"KeyHash": keyhash.KeyHash,
+		"HashFnv": keyhash.HashFnv,
+		"hashMap": keyhash.HashMap,
 	}
 	keysPatterms := map[string]KeysIteratorGetter{
 		"key[<index>]": GetBasicKeysSeq,
@@ -147,7 +148,7 @@ func BenchmarkKeyHashBasicSeq(b *testing.B) {
 	for v := range GetBasicKeysSeq(1) {
 		for i := range b.N {
 			_ = i
-			_ = main.KeyHash(v)
+			_ = keyhash.KeyHash(v)
 		}
 	}
 }
@@ -156,7 +157,7 @@ func BenchmarkHashFnvBasicSeq(b *testing.B) {
 	for v := range GetBasicKeysSeq(1) {
 		for i := range b.N {
 			_ = i
-			_ = main.HashFnv(v)
+			_ = keyhash.HashFnv(v)
 		}
 	}
 }
@@ -165,7 +166,7 @@ func BenchmarkHashMapBasicSeq(b *testing.B) {
 	for v := range GetBasicKeysSeq(1) {
 		for i := range b.N {
 			_ = i
-			_ = main.HashMap(v)
+			_ = keyhash.HashMap(v)
 		}
 	}
 }
@@ -174,7 +175,7 @@ func BenchmarkKeyHashUUIDSeq(b *testing.B) {
 	for v := range GetUUIDKeysSeq(1) {
 		for i := range b.N {
 			_ = i
-			_ = main.KeyHash(v)
+			_ = keyhash.KeyHash(v)
 		}
 	}
 }
@@ -183,7 +184,7 @@ func BenchmarkHashFnvUUIDSeq(b *testing.B) {
 	for v := range GetUUIDKeysSeq(1) {
 		for i := range b.N {
 			_ = i
-			_ = main.HashFnv(v)
+			_ = keyhash.HashFnv(v)
 		}
 	}
 }
@@ -192,7 +193,7 @@ func BenchmarkHashMapUUIDSeq(b *testing.B) {
 	for v := range GetUUIDKeysSeq(1) {
 		for i := range b.N {
 			_ = i
-			_ = main.HashMap(v)
+			_ = keyhash.HashMap(v)
 		}
 	}
 }
