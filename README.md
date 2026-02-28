@@ -82,6 +82,10 @@ BenchmarkHashFnvUUIDSeq-28    	60129084 	         18.34 ns/op	       0 B/op	    
 BenchmarkHashMapUUIDSeq-28    	263466603	         4.493 ns/op	       0 B/op	       0 allocs/op
 ```
 
+## Сравнение работы channel и mutex на базе шардированого key-value хранилища
+[Вот здесь](./keyvaluestore/README.md)
+
+
 ## Testcontainers
 Разные эксперименты с testcontainers
 - redis_test - запуск редиса в докере и проверка базовых функций
