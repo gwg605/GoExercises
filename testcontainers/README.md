@@ -10,3 +10,6 @@
 
 ## kafka_test
 Чисто вспомнить работу с кафкой (testcontainers/testcontainers-go/modules/kafka и клиент segmentio/kafka-go)
+
+## postgresql_test
+Реализовать конкурентные update-ы объектов с версионингом и получить тайминги (github.com/testcontainers/testcontainers-go/modules/postgres и клиент github.com/jackc/pgx/v5/stdlib)
