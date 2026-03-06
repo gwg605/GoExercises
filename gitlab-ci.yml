@@ -1,0 +1,30 @@
+image: golang:latest
+
+stages:
+  - build
+  - test
+
+# A job to compile the Go application into a binary
+go_build:
+  stage: build
+  script:
+    - mkdir -p bins
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bins ./...
+  artifacts:
+    paths:
+      - bins
+    expire_in: 1 week
+
+# A job to run code formatting, vetting, and unit tests
+go_format_test_vet:
+  stage: test
+  script:
+    # Check if the code is formatted correctly
+    - go fmt $(go list ./... | grep -v /vendor/)
+    # Run static analysis
+    - go vet $(go list ./... | grep -v /vendor/)
+    # Run tests with race detection and coverage
+    - go test -race -coverprofile=coverage.txt -v ./...
+  artifacts:
+    paths:
+      - coverage.txt
