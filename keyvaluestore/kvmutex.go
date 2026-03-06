@@ -48,7 +48,7 @@ func (kv *KVMutexes) Get(key string) ([]byte, error) {
 			return record.Data, nil
 		}
 	}
-	return nil, fmt.Errorf("No key")
+	return nil, fmt.Errorf("key not found")
 }
 
 func (kv *KVMutexes) Close() {

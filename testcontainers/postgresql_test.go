@@ -120,7 +120,12 @@ func TestPostgreSqlBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
+	defer func() {
+		err := db.Close()
+		if err != nil {
+			log.Printf("db.Close()=%v", err)
+		}
+	}()
 
 	if err = db.Ping(); err != nil {
 		t.Fatal(err)
@@ -217,7 +222,12 @@ func BenchmarkConcurentUpdates(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	defer db.Close()
+	defer func() {
+		err := db.Close()
+		if err != nil {
+			log.Printf("db.Close()=%v", err)
+		}
+	}()
 
 	err = createObjectsTable(db)
 	if err != nil {
@@ -254,7 +264,7 @@ func BenchmarkConcurentUpdates(b *testing.B) {
 	for c := range actualClients {
 		wg.Add(1)
 		go func() {
-			for i := range calcIterations(b.N, actualClients, c) {
+			for i := range CalcIterations(b.N, actualClients, c) {
 				_ = i
 				totalCases.Add(1)
 				var object Object

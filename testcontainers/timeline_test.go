@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/docker/client"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
@@ -53,6 +54,43 @@ type ContainerStats struct {
 			PGFaults    int64 `json:"pgfault"`
 		} `json:"stats"`
 	} `json:"memory_stats"`
+}
+
+func DumpContainerStats(tb testing.TB, ctx context.Context, totalCases int, actualClients int, dockerClient client.APIClient, containerID string) {
+	stats, err := dockerClient.ContainerStats(ctx, containerID, false)
+	if err != nil {
+		tb.Fatalf("dockerClient.ContainerStats()=%v", err)
+	}
+	defer func() {
+		err := stats.Body.Close()
+		if err != nil {
+			log.Printf("stats.Body.Close()=%v", err)
+		}
+	}()
+
+	buf := bytes.NewBuffer(nil)
+	_, err = io.Copy(buf, stats.Body)
+	if err != nil {
+		tb.Fatalf("io.Copy()=%v", err)
+	}
+
+	//log.Printf("stat=%s", buf.String())
+
+	var containerStats ContainerStats
+	err = json.Unmarshal(buf.Bytes(), &containerStats)
+	if err != nil {
+		tb.Fatalf("Error=%v", err)
+	}
+	log.Printf("Stats(%d/%d)=%v", totalCases, actualClients, containerStats)
+}
+
+func CalcIterations(cases int, totalClients int, client int) int {
+	var result = cases / totalClients
+	left := cases - result*totalClients
+	if client < left {
+		result += 1
+	}
+	return result
 }
 
 func TimelineSelectWithLua(ctx context.Context, keyPrefix string, start int64, end int64, client *redis.Client, script *redis.Script) (string, error) {
@@ -225,6 +263,9 @@ func TestRedisTimelineSelectWithLuaInitial(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Redis return error=%v", err)
 	}
+	if target0 != "" {
+		t.Fatalf("Wrong value '%s'. Expected ''", target0)
+	}
 
 	err = client.Del(ctx, "device0_target").Err()
 	if err != nil {
@@ -285,6 +326,9 @@ func TestRedisTimelineSelectWithRedlockInitial(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Redis return error=%v", err)
 	}
+	if target0 != "" {
+		t.Fatalf("Wrong value '%s'. Expected ''", target0)
+	}
 
 	err = client.Del(ctx, "device0_target").Err()
 	if err != nil {
@@ -342,6 +386,9 @@ func TestRedisTimelineSelectWithSetNXInitial(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Redis return error=%v", err)
 	}
+	if target0 != "" {
+		t.Fatalf("Wrong value '%s'. Expected ''", target0)
+	}
 
 	err = client.Del(ctx, "device0_target").Err()
 	if err != nil {
@@ -365,15 +412,6 @@ func TestRedisTimelineSelectWithSetNXInitial(t *testing.T) {
 	if !CompareSourceRecords(target0, res1) {
 		t.Fatalf("Redis return wong value %s, expected %s", target0, res1)
 	}
-}
-
-func calcIterations(cases int, totalClients int, client int) int {
-	var result = cases / totalClients
-	left := cases - result*totalClients
-	if client < left {
-		result += 1
-	}
-	return result
 }
 
 func BenchmarkRedisTimelineSelectWithLua(b *testing.B) {
@@ -435,7 +473,7 @@ func BenchmarkRedisTimelineSelectWithLua(b *testing.B) {
 				panic(err)
 			}
 
-			for j := range calcIterations(b.N, actualClients, i) {
+			for j := range CalcIterations(b.N, actualClients, i) {
 				_ = j
 
 				_, err := TimelineSelectWithLua(ctx, key, 9000, 11000, client, script)
@@ -456,21 +494,7 @@ func BenchmarkRedisTimelineSelectWithLua(b *testing.B) {
 
 	wg.Wait()
 
-	stats, err := dockerClient.ContainerStats(ctx, containerID, false)
-	if err != nil {
-		b.Fatalf("Error=%v", err)
-	}
-	defer stats.Body.Close()
-	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, stats.Body)
-	//log.Printf("stat=%s", buf.String())
-
-	var containerStats ContainerStats
-	err = json.Unmarshal(buf.Bytes(), &containerStats)
-	if err != nil {
-		b.Fatalf("Error=%v", err)
-	}
-	log.Printf("Stats(%d/%d)=%v", b.N, actualClients, containerStats)
+	DumpContainerStats(b, ctx, b.N, actualClients, dockerClient, containerID)
 }
 
 func BenchmarkRedisTimelineSelectWithRedlock(b *testing.B) {
@@ -533,7 +557,7 @@ func BenchmarkRedisTimelineSelectWithRedlock(b *testing.B) {
 				panic(err)
 			}
 
-			for j := range calcIterations(b.N, actualClients, i) {
+			for j := range CalcIterations(b.N, actualClients, i) {
 				_ = j
 
 				_, err := TimelineSelectWithRedlock(ctx, key, 9000, 11000, client, rs)
@@ -554,21 +578,7 @@ func BenchmarkRedisTimelineSelectWithRedlock(b *testing.B) {
 
 	wg.Wait()
 
-	stats, err := dockerClient.ContainerStats(ctx, containerID, false)
-	if err != nil {
-		b.Fatalf("Error=%v", err)
-	}
-	defer stats.Body.Close()
-	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, stats.Body)
-	//log.Printf("stat=%s", buf.String())
-
-	var containerStats ContainerStats
-	err = json.Unmarshal(buf.Bytes(), &containerStats)
-	if err != nil {
-		b.Fatalf("Error=%v", err)
-	}
-	log.Printf("Stats(%d/%d)=%v", b.N, actualClients, containerStats)
+	DumpContainerStats(b, ctx, b.N, actualClients, dockerClient, containerID)
 }
 
 func BenchmarkRedisTimelineSelectWithSetNX(b *testing.B) {
@@ -628,7 +638,7 @@ func BenchmarkRedisTimelineSelectWithSetNX(b *testing.B) {
 				panic(err)
 			}
 
-			for j := range calcIterations(b.N, actualClients, i) {
+			for j := range CalcIterations(b.N, actualClients, i) {
 				_ = j
 
 				_, err := TimelineSelectWithSetNX(ctx, key, 9000, 11000, client)
@@ -649,19 +659,5 @@ func BenchmarkRedisTimelineSelectWithSetNX(b *testing.B) {
 
 	wg.Wait()
 
-	stats, err := dockerClient.ContainerStats(ctx, containerID, false)
-	if err != nil {
-		b.Fatalf("Error=%v", err)
-	}
-	defer stats.Body.Close()
-	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, stats.Body)
-	//log.Printf("stat=%s", buf.String())
-
-	var containerStats ContainerStats
-	err = json.Unmarshal(buf.Bytes(), &containerStats)
-	if err != nil {
-		b.Fatalf("Error=%v", err)
-	}
-	log.Printf("Stats(%d/%d)=%v", b.N, actualClients, containerStats)
+	DumpContainerStats(b, ctx, b.N, actualClients, dockerClient, containerID)
 }

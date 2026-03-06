@@ -132,8 +132,8 @@ func TestKafkaBasic(t *testing.T) {
 					break
 				}
 				log.Printf("[%d] Received[%d:%d]=%s", r, msg.Partition, msg.Offset, string(msg.Value))
-				reader.CommitMessages(rctx, msg)
-				log.Printf("[%d] Commited=%s", r, string(msg.Value))
+				err = reader.CommitMessages(rctx, msg)
+				log.Printf("[%d] Commited=%s, err=%v", r, string(msg.Value), err)
 				readerReceivedMsg++
 			}
 			msgReceived.Add(readerReceivedMsg)

@@ -85,7 +85,7 @@ func (kv *KVChannels) Get(key string) ([]byte, error) {
 	kv.channels[storeIndex] <- msg
 	<-msg.Complete
 	if msg.Data == nil {
-		return nil, fmt.Errorf("No key")
+		return nil, fmt.Errorf("key not found")
 	}
 	return msg.Data, nil
 }
