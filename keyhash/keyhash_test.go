@@ -6,8 +6,8 @@ import (
 	"log"
 	"math"
 	"testing"
-	"valerygordeev/go/exercises/common"
 	"valerygordeev/go/exercises/keyhash"
+	"valerygordeev/go/exercises/libs/base"
 
 	"github.com/google/uuid"
 )
@@ -35,11 +35,11 @@ func DumpShardKeysStat(label string, stat ShardKeysStats) {
 	}
 	shardsCount := max(len(stat), 1)
 	averageKeysCount := totalKeys / shardsCount
-	var maxDisp = math.MinInt
-	var minDisp = math.MaxInt
-	var totalDisp = 0
+	var maxDisp uint = 0
+	var minDisp uint = math.MaxInt
+	var totalDisp uint = 0
 	for _, keysCount := range stat {
-		disp := common.AbsInt(keysCount - averageKeysCount)
+		disp := base.AbsInt(keysCount - averageKeysCount)
 		if disp < minDisp {
 			minDisp = disp
 		}
@@ -52,7 +52,7 @@ func DumpShardKeysStat(label string, stat ShardKeysStats) {
 		minDisp = 0
 		maxDisp = 0
 	}
-	averageDisp := totalDisp / shardsCount
+	averageDisp := totalDisp / uint(shardsCount)
 	log.Printf("%s|%9d|%7.03f|%9d|%7.03f|%9d|%7.03f|%9d| %v",
 		label, averageKeysCount,
 		float64(minDisp)/float64(averageKeysCount), minDisp,

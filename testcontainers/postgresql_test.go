@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
-	"valerygordeev/go/exercises/common"
+	"valerygordeev/go/exercises/libs/base"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -48,7 +48,7 @@ func loadObject(db *sql.DB, id string) (int64, []byte, error) {
 	var value []byte
 	err = row.Scan(&version, &value)
 	if err != nil {
-		return 0, nil, common.ErrorNotFound
+		return 0, nil, base.ErrorNotFound
 	}
 	return version, value, nil
 }
@@ -74,7 +74,7 @@ func saveObject(db *sql.DB, version int64, id string, val []byte) (int64, error)
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				return 0, common.ErrorInvalidState
+				return 0, base.ErrorInvalidState
 			} else {
 				log.Printf("code=%s, message=%s", pgErr.Code, pgErr.Message)
 			}
@@ -115,6 +115,7 @@ func TestPostgreSqlBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	log.Printf("connectionString=%s", connectionString)
 
 	db, err := sql.Open("pgx", connectionString)
 	if err != nil {
@@ -272,7 +273,7 @@ func BenchmarkConcurentUpdates(b *testing.B) {
 				objectID := fmt.Sprintf("object#%d", objectIdx)
 				ver, val, err := loadObject(db, objectID)
 				if err != nil {
-					if !errors.Is(err, common.ErrorNotFound) {
+					if !errors.Is(err, base.ErrorNotFound) {
 						log.Printf("[%d] loadObject(db, '%s) failed. Error=%v", c, objectID, err)
 						totalLoadFail.Add(1)
 						continue
@@ -296,7 +297,7 @@ func BenchmarkConcurentUpdates(b *testing.B) {
 				}
 				ver, err = saveObject(db, ver, objectID, objectData)
 				if err != nil {
-					if !errors.Is(err, common.ErrorInvalidState) {
+					if !errors.Is(err, base.ErrorInvalidState) {
 						log.Printf("[%d] saveObject(db, %d, '%s) failed. Error=%v", c, ver, objectID, err)
 						totalUpdateFail.Add(1)
 					} else {

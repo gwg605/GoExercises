@@ -1,0 +1,11 @@
+{
+    "web": {
+        "endpoint": "http://localhost:25000",
+        "binding_address": ":25000"
+    },
+    "db": {
+        "username": "%POSTGRESQL_USERNAME%",
+        "password": "%POSTGRESQL_PASSWORD%"
+    },
+    "service": {}
+}
