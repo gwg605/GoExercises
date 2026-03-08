@@ -10,6 +10,7 @@
 - lib - общий код
 - services - разные сервисы
 - testcontainers - различные тесты testcontainers пакета и разные сервисы
+- tests - различные простые тесты/исследования связанные с фичами Go
 - .github - CI/CD вещи связанные с github-ом
 - .gitlab-cl.yml - CI/CD для gitlab-а
 
@@ -42,4 +43,8 @@ go test -run <test name> -bench=<test name> -cpuprofile <cpu profile output file
 - Преобразовать \<cpu profile output file\> файл в .svg файл:
 ```
 go tool pprof -svg <cpu profile output file> > <cpu profile svg file>.svg
+```
+- Показать результаты трейсинга сохраненные в trace.out файле:
+```
+go tool trace ./trace.out
 ```
