@@ -11,9 +11,9 @@ import (
 )
 
 type CreateRequest struct {
+	ID      string    `json:"id"`
 	At      time.Time `json:"at"`
 	WebHook string    `json:"wh"`
-	OwnerID string    `json:"own"`
 }
 
 func GetHttpServiceHandler(service *CronService) http.Handler {
@@ -33,8 +33,6 @@ func GetHttpServiceHandler(service *CronService) http.Handler {
 
 	httpRoute.Get("/list", func(w http.ResponseWriter, r *http.Request) {
 		query := Query{}
-		query.OwnerID = r.URL.Query().Get("owner_id")
-
 		limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 		if err != nil {
 			base.MakeErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -63,8 +61,8 @@ func GetHttpServiceHandler(service *CronService) http.Handler {
 			base.MakeErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		id, err := service.Create(req.At, req.WebHook, req.OwnerID)
-		base.MakeResponse(w, id, err)
+		err = service.Create(req.ID, req.At, req.WebHook)
+		base.MakeResponse(w, err, err)
 	})
 
 	httpRoute.Get("/{recordID}/abort", func(w http.ResponseWriter, r *http.Request) {

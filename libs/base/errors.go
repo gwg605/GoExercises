@@ -13,4 +13,6 @@ var (
 	ErrorNotImplemented   = errors.New("not implemented")
 	ErrorOperationPending = errors.New("operation pending")
 	ErrorTooMany          = errors.New("too many")
+	ErrorAborted          = errors.New("Aborted")
+	ErrorOutOfRange       = errors.New("Out of range")
 )
