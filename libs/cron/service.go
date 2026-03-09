@@ -49,14 +49,14 @@ func (s *CronService) mainRun() {
 	log.Printf("mainRun() - start")
 	defer s.wg.Done()
 	var waitTime = time.Duration(0)
-	for true {
+	for {
 		select {
 		case <-s.mainEvents:
 			log.Printf("mainRun() - finish")
 			return
 		case <-time.After(waitTime):
 		}
-		for true {
+		for {
 			before := time.Now().UTC()
 			records, err := s.engine.SelectForProcessing(before, s.config.MaxSelectCount)
 			recordsCount := len(records)
@@ -91,7 +91,7 @@ func (s *CronService) workerRun(idx int) {
 	defer s.wg.Done()
 	client := http.Client{}
 	log.Printf("workerRun[%d] - start", idx)
-	for true {
+	for {
 		records := <-s.workerQueues[idx]
 		if records == nil {
 			log.Printf("workerRun[%d] - finish", idx)
